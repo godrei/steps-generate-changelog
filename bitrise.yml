@@ -1,0 +1,150 @@
+format_version: 4
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  # If you want to share this step into a StepLib
+  - BITRISE_STEP_VERSION: "0.9.0"
+
+workflows:
+  test:
+    before_run:
+    - audit-this-step
+    - go-tests
+    steps:
+    - change-workdir:
+        title: Switch working dir to ./_tmp dir
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - path::./:
+        title: Step Test
+        inputs:
+        - new_version: 0.9.1
+
+  go-tests:
+    before_run:
+    steps:
+    - script:
+        title: Export go files to test
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            no_vendor_paths="$(go list ./... | grep -v vendor)"
+            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
+    - script:
+        title: Err check
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/kisielk/errcheck
+            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Go lint
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/golang/lint/golint
+            while read -r line; do
+              echo "-> Linting: $line"
+              golint_out="$(golint $line)"
+              if [[ "${golint_out}" != "" ]] ; then
+                echo "=> Golint issues found:"
+                echo "${golint_out}"
+                exit 1
+              fi
+            done <<< "$GOLIST_WITHOUT_VENDOR"
+    - script:
+        title: Go test
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go test $(go list ./... | grep -v vendor)
+
+  # ----------------------------------------------------------------
+  # --- Utility workflows
+  dep-update:
+    title: Dep update
+    description: |
+      Used for updating bitrise dependencies with dep
+    steps:
+    - script:
+        title: Dependency update
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/golang/dep/cmd/dep
+            dep ensure -v
+            dep ensure -v -update
+
+  # ----------------------------------------------------------------
+  # --- workflows to create Release
+  create-release:
+    steps:
+    - script:
+        title: Create release
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go get -u github.com/bitrise-tools/releaseman
+            export CI=true
+            releaseman create --version $BITRISE_STEP_VERSION
+
+  # ----------------------------------------------------------------
+  # --- workflows to Share this step into a Step Library
+  audit-this-step:
+    steps:
+    - script:
+        title: Audit step.yml
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            stepman audit --step-yml ./step.yml
+
+  share-this-step:
+    envs:
+      # if you want to share this step into a StepLib
+      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
+      - BITRISE_STEP_VERSION: $BITRISE_STEP_VERSION
+      - BITRISE_STEP_ID: generate-changelog
+      - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/generate-changelog.git
+    description: |-
+      If this is the first time you try to share a Step you should
+      first call: $ bitrise share
+
+      This will print you a guide, and information about how Step sharing
+      works. Please read it at least once!
+
+      As noted in the Step sharing guide you'll have to fork the
+      StepLib you want to share this step into. Once you're done with forking
+      the repository you should set your own fork's git clone URL
+      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
+      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
+
+      You're now ready to share this Step, just make sure that
+      the `BITRISE_STEP_ID` and `BITRISE_STEP_VERSION`
+      environments are set to the desired values!
+
+      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
+
+      Once it finishes the only thing left is to actually create a Pull Request,
+      the way described in the guide printed at the end of the process.
+    before_run:
+    - audit-this-step
+    steps:
+    - script:
+        title: Share this step
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            bitrise share start -c "${MY_STEPLIB_REPO_FORK_GIT_URL}"
+            bitrise share create --stepid "${BITRISE_STEP_ID}" --tag "${BITRISE_STEP_VERSION}" --git "${BITRISE_STEP_GIT_CLONE_URL}"
+            bitrise share finish
