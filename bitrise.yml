@@ -1,4 +1,4 @@
-format_version: 4
+format_version: 5
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
@@ -10,8 +10,11 @@ workflows:
   test:
     before_run:
     - audit-this-step
-    - go-tests
     steps:
+    - go-list:
+    - golint:
+    - errcheck:
+    - go-test:
     - change-workdir:
         title: Switch working dir to ./_tmp dir
         inputs:
@@ -21,49 +24,14 @@ workflows:
         title: Step Test
         inputs:
         - new_version: 0.9.1
-
-  go-tests:
-    before_run:
-    steps:
     - script:
-        title: Export go files to test
+        title: Output test
         inputs:
         - content: |-
-            #!/bin/bash
-            set -ex
-            no_vendor_paths="$(go list ./... | grep -v vendor)"
-            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
-    - script:
-        title: Err check
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            go get -u -v github.com/kisielk/errcheck
-            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
-    - script:
-        title: Go lint
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            go get -u -v github.com/golang/lint/golint
-            while read -r line; do
-              echo "-> Linting: $line"
-              golint_out="$(golint $line)"
-              if [[ "${golint_out}" != "" ]] ; then
-                echo "=> Golint issues found:"
-                echo "${golint_out}"
-                exit 1
-              fi
-            done <<< "$GOLIST_WITHOUT_VENDOR"
-    - script:
-        title: Go test
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            go test $(go list ./... | grep -v vendor)
+            if [[ -z $BITRSE_CHANGELOG ]] ; then
+              echo "empty $BITRSE_CHANGELOG"
+              exit 1
+            fi
 
   # ----------------------------------------------------------------
   # --- Utility workflows

@@ -1,6 +1,28 @@
 title: Generate Changelog
 summary: Genereates Changelog based on git commits
-description: Genereates Changelog based on git commits.
+description: |-
+  Genereates Changelog based on git commits.
+
+  The step collects the commits from the latest tag to the latest commit on a given branch.
+
+  Use the `Release configurations` input to describe your release process:
+
+  ```
+  release:
+    development_branch: master # the changelog will built up by commits on this branch
+  changelog:
+    path: CHANGELOG.md # writes the changelog file to this path
+    content_template: |- # changelog template, uses: [text/template](https://golang.org/pkg/text/template/) the template models: https://github.com/bitrise-tools/releaseman/blob/master/releaseman/changelog.go#L46
+      {{range .ContentItems}}### {{.EndTaggedCommit.Tag}} ({{.EndTaggedCommit.Date.Format "2006 Jan 02"}})
+
+      {{range .Commits}}* [{{firstChars .Hash 7}}] {{.Message}}
+      {{end}}
+      {{end}}
+    header_template: '## Changelog (Current version: {{.Version}})' # the changelog new version's section's header template
+    footer_template: 'Updated: {{.CurrentDate.Format "2006 Jan 02"}}' # the changelog new version's section's footer template
+  ```
+
+  The template generates changelog like this: ./CHANGELOG.md
 
 website: https://github.com/bitrise-steplib/steps-generate-changelog
 source_code_url: https://github.com/bitrise-steplib/steps-generate-changelog
@@ -34,7 +56,6 @@ inputs:
   - release_config: |-
       release:
         development_branch: master
-        release_branch: master
       changelog:
         path: CHANGELOG.md
         content_template: |-
@@ -49,3 +70,8 @@ inputs:
       title: Release configurations
       summary: Release configurations
       description: Release configurations.
+outputs:
+  - BITRSE_CHANGELOG: 
+    opts:
+      title: Bitrise changelog content
+      summary: Bitrise changelog content

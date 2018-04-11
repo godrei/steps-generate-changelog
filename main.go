@@ -6,27 +6,25 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/pathutil"
-
-	"github.com/bitrise-io/go-utils/fileutil"
-
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-tools/go-steputils/tools"
 )
 
 const defaultReleaseConfig = `release:
-development_branch: master
-release_branch: master
+  development_branch: master
 changelog:
-path: CHANGELOG.md
-content_template: |-
-  {{range .ContentItems}}### {{.EndTaggedCommit.Tag}} ({{.EndTaggedCommit.Date.Format "2006 Jan 02"}})
+  path: CHANGELOG.md
+  content_template: |-
+    {{range .ContentItems}}### {{.EndTaggedCommit.Tag}} ({{.EndTaggedCommit.Date.Format "2006 Jan 02"}})
 
-  {{range .Commits}}* [{{firstChars .Hash 7}}] {{.Message}}
-  {{end}}
-  {{end}}
-header_template: '## Changelog (Current version: {{.Version}})'
-footer_template: 'Updated: {{.CurrentDate.Format "2006 Jan 02"}}'`
+    {{range .Commits}}* [{{firstChars .Hash 7}}] {{.Message}}
+    {{end}}
+    {{end}}
+  header_template: '## Changelog (Current version: {{.Version}})'
+  footer_template: 'Updated: {{.CurrentDate.Format "2006 Jan 02"}}'`
 
 func installedInPath(name string) bool {
 	cmd := exec.Command("which", name)
@@ -47,7 +45,7 @@ func main() {
 	log.Infof("Configs:")
 	log.Printf("new_version: %s", version)
 	log.Printf("changelog_pth: %s", changelogPth)
-	log.Printf("release_config: %s", releaseConfigContent)
+	log.Printf("release_config:\n%s", releaseConfigContent)
 
 	if version == "" {
 		failf("Next version not defined")
@@ -86,11 +84,29 @@ func main() {
 		}
 	}
 
-	cmd := command.NewWithStandardOuts("releaseman", "--ci", "create-changelog", "--version", version, "--changelog-path", changelogPth)
+	log.Infof("\nGenerating changelog...")
+
+	cmd := command.New("releaseman", "--ci", "create-changelog", "--version", version, "--changelog-path", changelogPth)
 
 	log.Printf("$ %s", cmd.PrintableCommandArgs())
 
-	if err := cmd.Run(); err != nil {
-		failf("Failed to generate changelog: %s", err)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		log.Errorf("command failed:")
+		log.Printf(out)
+		os.Exit(1)
 	}
+
+	changelog, err := fileutil.ReadStringFromFile(changelogPth)
+	if err != nil {
+		failf("Failed to read changelog: %s", err)
+	}
+
+	log.Infof("\nChangelog:")
+	log.Printf(changelog)
+
+	if err := tools.ExportEnvironmentWithEnvman("BITRSE_CHANGELOG", changelog); err != nil {
+		failf("Failed to export changelog: %s", err)
+	}
+
+	log.Donef("\nThe changelog content is available in the BITRSE_CHANGELOG environment variable")
 }

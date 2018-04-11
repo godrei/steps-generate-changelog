@@ -14,9 +14,15 @@
   ]
   revision = "b33f6bcef9b50045d7e62364b354584afc3ee329"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/bitrise-tools/go-steputils"
+  packages = ["tools"]
+  revision = "d4d9e08cc4347e8784bb18419fcdceb932e17019"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "359d05564990cb4c21e9a0a821f1a9dab4efe61b2d4f92f26129c4a94557d15b"
+  inputs-digest = "cc66b43c0cb0bc32a532b5aee0260d64b0c3192b65e6bea53a17446ccd161bd5"
   solver-name = "gps-cdcl"
   solver-version = 1
