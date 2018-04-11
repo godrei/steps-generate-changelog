@@ -2,9 +2,9 @@ title: Generate Changelog
 summary: Genereates Changelog based on git commits
 description: Genereates Changelog based on git commits.
 
-website: https://github.com/bitrise-steplib/bitrise-step-generate-changelog
-source_code_url: https://github.com/bitrise-steplib/bitrise-step-generate-changelog
-support_url: https://github.com/bitrise-steplib/bitrise-step-generate-changelog/issues
+website: https://github.com/bitrise-steplib/steps-generate-changelog
+source_code_url: https://github.com/bitrise-steplib/steps-generate-changelog
+support_url: https://github.com/bitrise-steplib/steps-generate-changelog/issues
 
 type_tags:
   - utility
@@ -16,7 +16,7 @@ run_if: ""
 
 toolkit:
   go:
-    package_name: github.com/bitrise-steplib/bitrise-step-generate-changelog
+    package_name: github.com/bitrise-steplib/steps-generate-changelog
 
 inputs:
   - new_version: $BITRISE_GIT_TAG
