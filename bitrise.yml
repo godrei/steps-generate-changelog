@@ -28,6 +28,8 @@ workflows:
         title: Output test
         inputs:
         - content: |-
+            echo '$BITRSE_CHANGELOG='
+            echo $BITRSE_CHANGELOG
             if [[ -z $BITRSE_CHANGELOG ]] ; then
               echo "empty $BITRSE_CHANGELOG"
               exit 1
