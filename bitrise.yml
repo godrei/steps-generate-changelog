@@ -64,8 +64,8 @@ workflows:
     - git::https://github.com/godrei/steps-github-release@master:
         inputs:
         - api_token: $BITRISE_GITHUB_API_TOKEN
-        - repository_url: https://github.com/godrei/steps-github-release-test.git
-        - commit: "2b6c76430d1e303a9a718a29a93d5d133a353349"
+        - repository_url: $GIT_REPOSITORY_URL
+        - commit: $BITRISE_GIT_COMMIT
         - tag: $BITRISE_GIT_TAG
         - name: $BITRISE_GIT_TAG
         - body: $BITRSE_CHANGELOG
