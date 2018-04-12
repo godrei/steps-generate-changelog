@@ -4,7 +4,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   # If you want to share this step into a StepLib
-  - BITRISE_STEP_VERSION: "0.9.0"
+  - BITRISE_GIT_TAG: $BITRISE_GIT_TAG
 
 workflows:
   test:
@@ -54,17 +54,22 @@ workflows:
 
   # ----------------------------------------------------------------
   # --- workflows to create Release
-  create-release:
+  release:
+    before_run:
+    - test
     steps:
-    - script:
-        title: Create release
+    - git::https://github.com/godrei/steps-generate-changelog@master:
         inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get -u github.com/bitrise-tools/releaseman
-            export CI=true
-            releaseman create --version $BITRISE_STEP_VERSION
+        - new_version: $BITRISE_GIT_TAG
+    - git::https://github.com/godrei/steps-github-release@master:
+        inputs:
+        - api_token: $BITRISE_GITHUB_API_TOKEN
+        - repository_url: https://github.com/godrei/steps-github-release-test.git
+        - commit: "2b6c76430d1e303a9a718a29a93d5d133a353349"
+        - tag: $BITRISE_GIT_TAG
+        - name: $BITRISE_GIT_TAG
+        - body: $BITRSE_CHANGELOG
+        - draft: "yes"
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
@@ -82,7 +87,7 @@ workflows:
     envs:
       # if you want to share this step into a StepLib
       - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-      - BITRISE_STEP_VERSION: $BITRISE_STEP_VERSION
+      - BITRISE_STEP_VERSION: $BITRISE_GIT_TAG
       - BITRISE_STEP_ID: generate-changelog
       - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/generate-changelog.git
     description: |-
