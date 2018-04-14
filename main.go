@@ -84,6 +84,16 @@ func main() {
 		}
 	}
 
+	// sandbox
+	if err := command.New("git", "fetch", "--all", "--tags", "--prune").Run(); err != nil {
+		failf("Failed to fetch tags: %s", err)
+	}
+
+	if err := command.New("git", "checkout", "master").Run(); err != nil {
+		failf("Failed to checkout tag: %s", err)
+	}
+	//
+
 	log.Infof("\nGenerating changelog...")
 
 	cmd := command.New("releaseman", "--ci", "create-changelog", "--version", version, "--changelog-path", changelogPth)
