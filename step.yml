@@ -24,9 +24,9 @@ description: |-
 
   The template generates changelog like this: ./CHANGELOG.md
 
-website: https://github.com/bitrise-steplib/steps-generate-changelog
-source_code_url: https://github.com/bitrise-steplib/steps-generate-changelog
-support_url: https://github.com/bitrise-steplib/steps-generate-changelog/issues
+website: https://github.com/godrei/steps-generate-changelog
+source_code_url: https://github.com/godrei/steps-generate-changelog
+support_url: https://github.com/godrei/steps-generate-changelog/issues
 
 type_tags:
   - utility
@@ -38,7 +38,7 @@ run_if: ""
 
 toolkit:
   go:
-    package_name: github.com/bitrise-steplib/steps-generate-changelog
+    package_name: github.com/godrei/steps-generate-changelog
 
 inputs:
   - new_version: $BITRISE_GIT_TAG
