@@ -42,7 +42,7 @@ workflows:
 
   release:
     envs:
-    - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/generate-changelog.git
+    - BITRISE_STEP_GIT_CLONE_URL: https://github.com/godrei/generate-changelog.git
     - BITRISE_STEP_ID: generate-changelog
     - BITRISE_STEP_VERSION: $BITRISE_GIT_TAG
     - BITRISE_GITHUB_API_TOKEN: $BITRISE_GITHUB_API_TOKEN
