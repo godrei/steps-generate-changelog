@@ -46,7 +46,6 @@ func parseCommit(out string) (Commit, error) {
 	dateStr := ""
 	author := ""
 	message := ""
-
 	messageStart := false
 	for _, line := range strings.Split(out, "\n") {
 		line = strings.TrimSpace(line)
@@ -145,38 +144,69 @@ func LastCommit(repoDir string) (Commit, error) {
 }
 
 func parseCommitList(out string) ([]Commit, error) {
+	/*
+		commit: 7e429002426846bb0837cb8b06603eb47a17d846
+		date: 1523740143
+		author: Krisztián Gödrei
+		message: release wf (#2)
+	*/
 	var commits []Commit
 
-	commitLine := ""
-	var commitStart bool
-
+	hash := ""
+	dateStr := ""
+	author := ""
+	message := ""
+	messageStart := false
 	for _, line := range strings.Split(out, "\n") {
 		line = strings.TrimSpace(line)
-
-		if strings.HasPrefix(line, hashPrefix) {
-			commitStart = true
+		if line == "" {
+			continue
 		}
 
-		if commitStart {
-			if commitLine != "" {
-				commit, err := parseCommit(commitLine)
+		if strings.HasPrefix(line, hashPrefix) {
+			if hash != "" {
+				date, err := parseDate(dateStr)
 				if err != nil {
 					return nil, err
 				}
 
-				commits = append(commits, commit)
+				commits = append(commits, Commit{
+					Hash:    hash,
+					Message: message,
+					Date:    date,
+					Author:  author,
+				})
+				message = ""
+				messageStart = false
 			}
-
-			commitStart = false
-			commitLine = ""
+			hash = strings.TrimPrefix(line, hashPrefix)
+		} else if strings.HasPrefix(line, datePrefix) {
+			dateStr = strings.TrimPrefix(line, datePrefix)
+		} else if strings.HasPrefix(line, authorPrefix) {
+			author = strings.TrimPrefix(line, authorPrefix)
+		} else if strings.HasPrefix(line, messagePrefix) {
+			messageStart = true
 		}
 
-		if commitLine == "" {
-			commitLine = line
-		} else {
-			commitLine += fmt.Sprintf("\n%s", line)
+		if messageStart {
+			if strings.HasPrefix(line, messagePrefix) {
+				message += strings.TrimPrefix(line, messagePrefix)
+			} else {
+				message += fmt.Sprintf("\n%s", line)
+			}
 		}
 	}
+	date, err := parseDate(dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	commits = append(commits, Commit{
+		Hash:    hash,
+		Message: message,
+		Date:    date,
+		Author:  author,
+	})
 
 	return commits, nil
 }
