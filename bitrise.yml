@@ -23,10 +23,10 @@ workflows:
         title: Output test
         inputs:
         - content: |-
-            echo '$BITRSE_CHANGELOG='
-            echo $BITRSE_CHANGELOG
-            if [[ -z $BITRSE_CHANGELOG ]] ; then
-              echo "empty $BITRSE_CHANGELOG"
+            echo '$BITRISE_CHANGELOG='
+            echo $BITRISE_CHANGELOG
+            if [[ -z $BITRISE_CHANGELOG ]] ; then
+              echo "empty $BITRISE_CHANGELOG"
               exit 1
             fi
 
@@ -60,7 +60,7 @@ workflows:
         - commit: $BITRISE_GIT_COMMIT
         - tag: $BITRISE_STEP_VERSION
         - name: $BITRISE_STEP_VERSION
-        - body: $BITRSE_CHANGELOG
+        - body: $BITRISE_CHANGELOG
         - draft: "yes"
     - script:
         title: Share this step
