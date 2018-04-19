@@ -122,9 +122,9 @@ func main() {
 	log.Infof("\nChangelog:")
 	log.Printf(changelog)
 
-	if err := tools.ExportEnvironmentWithEnvman("BITRSE_CHANGELOG", changelog); err != nil {
+	if err := tools.ExportEnvironmentWithEnvman("BITRISE_CHANGELOG", changelog); err != nil {
 		failf("Failed to export changelog: %s", err)
 	}
 
-	log.Donef("\nThe changelog content is available in the BITRSE_CHANGELOG environment variable")
+	log.Donef("\nThe changelog content is available in the BITRISE_CHANGELOG environment variable")
 }

@@ -40,7 +40,7 @@ inputs:
       description: Changelog path.
       is_required: true
 outputs:
-  - BITRSE_CHANGELOG: 
+  - BITRISE_CHANGELOG: 
     opts:
       title: Bitrise changelog content
       summary: Bitrise changelog content
